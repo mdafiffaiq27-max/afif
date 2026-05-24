@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malaysian Rice Growth Derivative Visualizer</title>
+    <!-- Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons for UI iconography -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 text-slate-200 font-sans p-4 md:p-8 min-h-screen">
+    <div class="max-w-6xl mx-auto space-y-6">
+        
+        <!-- Header Section -->
+        <header class="bg-slate-800 rounded-2xl p-6 shadow-md border border-slate-700 flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="bg-emerald-900/50 p-2 rounded-lg border border-emerald-800">
+                        <i data-lucide="sprout" class="text-emerald-400 w-6 h-6"></i>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Malaysian Rice Growth Derivative Visualizer</h1>
+                </div>
+                <p class="text-slate-400 max-w-2xl text-sm leading-relaxed">
+                    A Food Security bioscience model demonstrating how calculus (<span class="font-mono text-emerald-400 text-xs">f(t)</span>, <span class="font-mono text-orange-400 text-xs">f'(t)</span>, <span class="font-mono text-purple-400 text-xs">f''(t)</span>) determines the optimal fertilizer timing for MR297 Padi.
+                </p>
+            </div>
+            <div class="bg-emerald-900/30 p-4 rounded-xl border border-emerald-800/50 flex flex-col justify-center items-start md:items-end">
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Target Cultivar</span>
+                <span class="text-lg font-bold text-white">MARDI MR297</span>
+                <span class="text-xs text-emerald-200/70 mt-1">High-Yield | Resistant | 105-115 Days</span>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Column: Chart & Explanations -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Chart Container -->
+                <div class="bg-slate-800 p-4 rounded-2xl shadow-md border border-slate-700">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="line-chart" class="text-emerald-400 w-5 h-5"></i>
+                            Growth Dynamics (Biomass & Rates)
+                        </h2>
+                        <!-- View Toggles -->
+                        <div class="bg-slate-900 p-1 rounded-lg flex gap-1 border border-slate-700">
+                            <button id="toggle-all" class="bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-md shadow-sm transition-all focus:outline-none whitespace-nowrap">All Curves</button>
+                            <button id="toggle-f" class="text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-bold px-3 py-1.5 rounded-md transition-all focus:outline-none whitespace-nowrap">Biomass f(t)</button>
+                            <button id="toggle-df" class="text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-bold px-3 py-1.5 rounded-md transition-all focus:outline-none whitespace-nowrap">Rate f'(t)</button>
+                            <button id="toggle-d2f" class="text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-bold px-3 py-1.5 rounded-md transition-all focus:outline-none whitespace-nowrap">Accel f''(t)</button>
+                        </div>
+                    </div>
+                    <div class="relative h-[400px] w-full">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Explanatory Bioscience Panel -->
+                <div class="bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-700">
+                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <i data-lucide="book-open" class="text-emerald-400 w-5 h-5"></i>
+                        Bioscience Concept: The Calculus of Fertilizer Timing
+                    </h3>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-4">
+                        In Malaysian food security, optimizing the yield of varieties like MR297 requires precise timing for nitrogen top-dressing. We apply calculus to the logistic growth model of the crop:
+                    </p>
+                    <ul class="space-y-3 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="bg-emerald-900/50 text-emerald-400 font-bold px-2 py-0.5 rounded text-xs mt-0.5 border border-emerald-800">f(t)</span>
+                            <div><strong>Total Biomass:</strong> The logistic growth curve representing the total weight of the rice plant over time.</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="bg-orange-900/50 text-orange-400 font-bold px-2 py-0.5 rounded text-xs mt-0.5 border border-orange-800">f'(t)</span>
+                            <div><strong>Growth Rate (1st Derivative):</strong> The daily rate of biomass accumulation. Agronomists apply base fertilizers just before this rate starts climbing rapidly.</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="bg-purple-900/50 text-purple-400 font-bold px-2 py-0.5 rounded text-xs mt-0.5 border border-purple-800">f''(t)</span>
+                            <div><strong>Growth Acceleration (2nd Derivative):</strong> The rate at which the growth rate changes. The peak of <span class="font-mono text-emerald-400">f'(t)</span> occurs when <span class="font-mono text-purple-400">f''(t) = 0</span>. This exact point of zero acceleration is critical: it marks the optimal day for <em>nitrogen top-dressing</em> to boost panicle formation before the plant's energy switches to grain filling.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Controls & Math -->
+            <div class="space-y-6">
+                <!-- Interactive Parameter / Metric Panel -->
+                <div class="bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-700 flex flex-col gap-5">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="sliders" class="text-emerald-400 w-5 h-5"></i>
+                            Environmental Controller
+                        </h3>
+                        <span id="badge-phase" class="text-xs font-bold px-2.5 py-1 rounded-full transition-colors duration-300">Phase</span>
+                    </div>
+
+                    <!-- Scenario Profiles -->
+                    <div class="flex flex-col gap-2 border-b border-slate-700 pb-4">
+                        <label class="text-xs font-semibold text-slate-400">Scenario Profiles:</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="btn-scen-standard" class="bg-emerald-900/40 hover:bg-emerald-800 text-emerald-300 text-[10px] sm:text-xs font-bold py-1.5 px-2 rounded-md transition-colors border border-emerald-700">MR297 Standard</button>
+                            <button id="btn-scen-drought" class="bg-orange-900/40 hover:bg-orange-800 text-orange-300 text-[10px] sm:text-xs font-bold py-1.5 px-2 rounded-md transition-colors border border-orange-700">Drought Stress</button>
+                            <button id="btn-scen-opt" class="bg-blue-900/40 hover:bg-blue-800 text-blue-300 text-[10px] sm:text-xs font-bold py-1.5 px-2 rounded-md transition-colors border border-blue-700">Optimal (MADA)</button>
+                        </div>
+                    </div>
+
+                    <!-- Environmental Parameters -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-slate-700 pb-4">
+                        <div>
+                            <label class="text-xs font-semibold text-slate-400 block mb-1">Max Yield Cap (L): <span id="val-l" class="text-emerald-400 font-bold">1500</span> g/m²</label>
+                            <input id="env-l" type="range" min="800" max="2500" step="50" value="1500" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-400 block mb-1">Growth Eff (k): <span id="val-k" class="text-emerald-400 font-bold">0.08</span></label>
+                            <input id="env-k" type="range" min="0.03" max="0.18" step="0.01" value="0.08" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+                    </div>
+
+                    <!-- Slide Input & Animation -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-2">
+                                <label for="time-slider" class="text-sm font-semibold text-slate-300">Days Since Sowing (t):</label>
+                                <button id="btn-animate" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 transition-colors shadow-sm">
+                                    <i data-lucide="play" class="w-3 h-3"></i> Play
+                                </button>
+                            </div>
+                            <span class="text-lg font-bold text-emerald-400 bg-slate-900 px-3 py-1 rounded-lg border border-slate-700" id="slider-val">55 Days</span>
+                        </div>
+                        <input id="time-slider" type="range" min="0" max="120" value="55" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none">
+                    </div>
+
+                    <!-- Math Outputs Grid -->
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 flex flex-col">
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase mb-1">Biomass f(t)</span>
+                            <span class="text-xl font-bold text-white" id="out-f">0.00</span>
+                            <span class="text-xs text-slate-400">grams / m²</span>
+                        </div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 flex flex-col">
+                            <span class="text-[10px] font-bold text-orange-400 uppercase mb-1">Growth Rate f'(t)</span>
+                            <span class="text-xl font-bold text-white" id="out-df">0.00</span>
+                            <span class="text-xs text-slate-400">grams / m² per day</span>
+                        </div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 flex flex-col">
+                            <span class="text-[10px] font-bold text-purple-400 uppercase mb-1">Acceleration f''(t)</span>
+                            <span class="text-xl font-bold text-white" id="out-d2f">0.00</span>
+                            <span class="text-xs text-slate-400">Rate of rate change</span>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Mathematical Formula -->
+                    <div class="mt-2 bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide text-center border-b border-slate-800 pb-2">Instantaneous Calculation</h4>
+                        <div id="math-live" class="text-center text-sm overflow-x-auto pb-1 text-slate-200"></div>
+                    </div>
+                </div>
+
+                <!-- Agronomist Validation Diagnostic -->
+                <div class="bg-slate-800 p-6 rounded-2xl shadow-md border border-slate-700">
+                    <h3 class="text-md font-bold text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="text-emerald-400 w-4 h-4"></i>
+                        Diagnostic: Top-Dressing Validation
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Set the slider to the exact day the plant reaches zero acceleration (f''(t) ≈ 0) and verify your top-dressing timing.</p>
+                    
+                    <button id="btn-verify" class="w-full bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2 text-sm">
+                        <i data-lucide="target" class="w-4 h-4 text-emerald-400"></i> Verify Timing
+                    </button>
+                    <div id="verify-result" class="mt-3 hidden text-sm font-medium p-3 rounded-lg border"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- Model Parameters ---
+        let L = 1500; // Carrying capacity (Max yield g/m2)
+        let k = 0.08; // Logistic growth rate
+        const t0 = 55; // Day of maximum growth rate (inflection point)
+
+        // Mathematical Functions for Logistic Growth
+        // 1. Base Function f(t)
+        function calcF(t) {
+            return L / (1 + Math.exp(-k * (t - t0)));
+        }
+
+        // 2. First Derivative f'(t)
+        function calcDf(t) {
+            const expTerm = Math.exp(-k * (t - t0));
+            return (L * k * expTerm) / Math.pow(1 + expTerm, 2);
+        }
+
+        // 3. Second Derivative f''(t)
+        function calcD2f(t) {
+            const expTerm = Math.exp(-k * (t - t0));
+            return (L * Math.pow(k, 2) * expTerm * (expTerm - 1)) / Math.pow(1 + expTerm, 3);
+        }
+
+        // Data generation for Chart
+        let tValues = [];
+        let fValues = [];
+        let dfValues = [];
+        let d2fValues = [];
+
+        function generateData() {
+            tValues = []; fValues = []; dfValues = []; d2fValues = [];
+            for (let t = 0; t <= 120; t++) {
+                tValues.push(t);
+                fValues.push(calcF(t));
+                dfValues.push(calcDf(t));
+                d2fValues.push(calcD2f(t));
+            }
+        }
+        
+        generateData();
+
+        // --- Chart.js Configuration ---
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        let activeDatasetToggle = 'all';
+
+        let growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: tValues,
+                datasets: [
+                    {
+                        label: "Biomass f(t) (g/m²)",
+                        data: fValues,
+                        borderColor: '#10b981', // Emerald 500
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: "Growth Rate f'(t)",
+                        data: dfValues,
+                        borderColor: '#f97316', // Orange 500
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: "Acceleration f''(t)",
+                        data: d2fValues,
+                        borderColor: '#a855f7', // Purple 500
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [2, 2],
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y1' 
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                color: '#94a3b8', 
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            font: { family: "'Inter', sans-serif", weight: 'bold' },
+                            color: '#cbd5e1' 
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                        titleColor: '#f1f5f9', 
+                        bodyColor: '#cbd5e1', 
+                        borderColor: '#334155', 
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            title: function(context) {
+                                return `Day ${context[0].label}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Days Since Sowing (t)', font: {weight: 'bold'}, color: '#94a3b8' },
+                        grid: { color: '#334155', drawBorder: false }, 
+                        ticks: { color: '#94a3b8' } 
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Biomass (g/m²)', color: '#10b981', font: {weight: 'bold'} },
+                        grid: { color: '#334155', drawBorder: false }, 
+                        ticks: { color: '#94a3b8' } 
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Rate & Accel', color: '#f97316', font: {weight: 'bold'} },
+                        grid: { drawOnChartArea: false }, 
+                        ticks: { color: '#94a3b8' } 
+                    }
+                }
+            }
+        });
+
+        // --- DOM Interactions ---
+        const timeSlider = document.getElementById('time-slider');
+        const sliderValDisplay = document.getElementById('slider-val');
+        const outF = document.getElementById('out-f');
+        const outDf = document.getElementById('out-df');
+        const outD2f = document.getElementById('out-d2f');
+        const mathLive = document.getElementById('math-live');
+        const badgePhase = document.getElementById('badge-phase');
+        const btnVerify = document.getElementById('btn-verify');
+        const verifyResult = document.getElementById('verify-result');
+        
+        const toggleAllBtn = document.getElementById('toggle-all');
+        const toggleFBtn = document.getElementById('toggle-f');
+        const toggleDfBtn = document.getElementById('toggle-df');
+        const toggleD2fBtn = document.getElementById('toggle-d2f');
+
+        const btnScenStandard = document.getElementById('btn-scen-standard');
+        const btnScenDrought = document.getElementById('btn-scen-drought');
+        const btnScenOpt = document.getElementById('btn-scen-opt');
+        const btnAnimate = document.getElementById('btn-animate');
+        let animationInterval = null;
+
+        const envLSlider = document.getElementById('env-l');
+        const envKSlider = document.getElementById('env-k');
+        const valLDisplay = document.getElementById('val-l');
+        const valKDisplay = document.getElementById('val-k');
+
+        function updatePanel(t) {
+            sliderValDisplay.innerText = `${t} Days`;
+            
+            const currentF = calcF(t);
+            const currentDf = calcDf(t);
+            const currentD2f = calcD2f(t);
+
+            outF.innerText = currentF.toFixed(1);
+            outDf.innerText = currentDf.toFixed(2);
+            outD2f.innerText = currentD2f.toFixed(3);
+
+            // Phase determination
+            if (t < 30) {
+                badgePhase.innerText = "Vegetative Phase";
+                badgePhase.className = "text-xs font-bold px-2.5 py-1 rounded-full transition-colors duration-300 bg-slate-700 text-slate-300 border border-slate-600";
+            } else if (t >= 30 && t <= 75) {
+                badgePhase.innerText = "Reproductive Phase";
+                badgePhase.className = "text-xs font-bold px-2.5 py-1 rounded-full transition-colors duration-300 bg-orange-900/50 text-orange-400 border border-orange-800";
+            } else {
+                badgePhase.innerText = "Ripening Phase";
+                badgePhase.className = "text-xs font-bold px-2.5 py-1 rounded-full transition-colors duration-300 bg-emerald-900/50 text-emerald-400 border border-emerald-800";
+            }
+
+            // Math String Update
+            mathLive.innerHTML = `<span class="text-orange-400">f'(${t})</span> = 
+                <span class="text-emerald-400">(${L.toFixed(0)}</span> × <span class="text-slate-300">${k.toFixed(2)}</span> × e<sup>-${k.toFixed(2)}(${t}-${t0})</sup>) 
+                / (1 + e<sup>-${k.toFixed(2)}(${t}-${t0})</sup>)<sup>2</sup> 
+                = <strong>${currentDf.toFixed(2)}</strong>`;
+
+            highlightChartPoint(t);
+            verifyResult.classList.add('hidden'); // Hide verification on change
+        }
+
+        function highlightChartPoint(t) {
+            growthChart.data.datasets.forEach(dataset => {
+                dataset.pointBackgroundColor = dataset.data.map(() => 'transparent');
+                dataset.pointRadius = dataset.data.map(() => 0);
+            });
+            growthChart.data.datasets.forEach(dataset => {
+                dataset.pointBackgroundColor[t] = '#fff';
+                dataset.pointRadius[t] = 6;
+            });
+            growthChart.update();
+        }
+
+        function recalculateChartData() {
+            generateData();
+            growthChart.data.datasets[0].data = fValues;
+            growthChart.data.datasets[1].data = dfValues;
+            growthChart.data.datasets[2].data = d2fValues;
+            growthChart.update();
+            updatePanel(parseInt(timeSlider.value));
+        }
+
+        // --- Listeners & Logic ---
+        timeSlider.addEventListener('input', (e) => {
+            updatePanel(parseInt(e.target.value));
+            if(animationInterval) btnAnimate.click();
+        });
+
+        envLSlider.addEventListener('input', (e) => {
+            L = parseFloat(e.target.value);
+            valLDisplay.innerText = L;
+            recalculateChartData();
+        });
+
+        envKSlider.addEventListener('input', (e) => {
+            k = parseFloat(e.target.value);
+            valKDisplay.innerText = k.toFixed(2);
+            recalculateChartData();
+        });
+
+        // Dataset Toggles
+        function updateDatasetVisibilities() {
+            const map = { all: [true,true,true], f: [true,false,false], df: [false,true,false], d2f: [false,false,true] };
+            const vis = map[activeDatasetToggle];
+            vis.forEach((v, i) => growthChart.setDatasetVisibility(i, v));
+            growthChart.update();
+        }
+
+        toggleAllBtn.addEventListener('click', () => { activeDatasetToggle = 'all'; updateDatasetVisibilities(); });
+        toggleFBtn.addEventListener('click', () => { activeDatasetToggle = 'f'; updateDatasetVisibilities(); });
+        toggleDfBtn.addEventListener('click', () => { activeDatasetToggle = 'df'; updateDatasetVisibilities(); });
+        toggleD2fBtn.addEventListener('click', () => { activeDatasetToggle = 'd2f'; updateDatasetVisibilities(); });
+
+        // Scenario Profiles
+        function loadScenario(scenarioL, scenarioK) {
+            L = scenarioL;
+            k = scenarioK;
+            envLSlider.value = L;
+            envKSlider.value = k;
+            valLDisplay.innerText = L;
+            valKDisplay.innerText = k.toFixed(2);
+            recalculateChartData();
+        }
+        btnScenStandard.addEventListener('click', () => loadScenario(1500, 0.08));
+        btnScenDrought.addEventListener('click', () => loadScenario(1100, 0.05));
+        btnScenOpt.addEventListener('click', () => loadScenario(2200, 0.12));
+
+        // Animation
+        btnAnimate.addEventListener('click', () => {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+                btnAnimate.innerHTML = '<i data-lucide="play" class="w-3 h-3"></i> Play';
+            } else {
+                if (parseInt(timeSlider.value) >= 120) timeSlider.value = 0;
+                btnAnimate.innerHTML = '<i data-lucide="square" class="w-3 h-3"></i> Stop';
+                animationInterval = setInterval(() => {
+                    let currentDay = parseInt(timeSlider.value);
+                    if (currentDay >= 120) { clearInterval(animationInterval); animationInterval = null; btnAnimate.innerHTML = '<i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset'; }
+                    else { currentDay++; timeSlider.value = currentDay; updatePanel(currentDay); }
+                }, 80);
+            }
+            lucide.createIcons();
+        });
+
+        btnVerify.addEventListener('click', () => {
+            const currentT = parseInt(timeSlider.value);
+            const currentD2f = calcD2f(currentT);
+            verifyResult.classList.remove('hidden');
+            if (Math.abs(currentD2f) < 0.2) {
+                verifyResult.className = "mt-3 text-sm font-medium p-3 rounded-lg border bg-emerald-900/30 border-emerald-700 text-emerald-400 block";
+                verifyResult.innerHTML = `<i data-lucide="check-circle" class="inline w-4 h-4 mr-1"></i> Correct! Day ${currentT} is the inflection point.`;
+            } else if (currentD2f > 0) {
+                verifyResult.className = "mt-3 text-sm font-medium p-3 rounded-lg border bg-orange-900/30 border-orange-700 text-orange-400 block";
+                verifyResult.innerHTML = `<i data-lucide="alert-circle" class="inline w-4 h-4 mr-1"></i> Too Early! Acceleration is positive.`;
+            } else {
+                verifyResult.className = "mt-3 text-sm font-medium p-3 rounded-lg border bg-rose-900/30 border-rose-700 text-rose-400 block";
+                verifyResult.innerHTML = `<i data-lucide="alert-circle" class="inline w-4 h-4 mr-1"></i> Too Late! Acceleration is negative.`;
+            }
+            lucide.createIcons();
+        });
+
+        // Click on chart
+        document.getElementById('growthChart').onclick = function(evt) {
+            const points = growthChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+            if (points.length) {
+                const value = growthChart.data.labels[points[0].index];
+                timeSlider.value = value;
+                updatePanel(value);
+            }
+        };
+
+        updatePanel(55);
+    </script>
+</body>
+</html>
